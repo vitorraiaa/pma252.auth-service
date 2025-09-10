@@ -3,6 +3,7 @@ package store.auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 public class AuthResource implements AuthController {
@@ -16,7 +17,10 @@ public class AuthResource implements AuthController {
             in.name(), in.email(), in.password()
         );
         return ResponseEntity
-            .ok(TokenOut.builder().jwt(jwt).build());
+            .created(
+                ServletUriComponentsBuilder.fromCurrentRequest().build().toUri()
+            )
+            .body(TokenOut.builder().jwt(jwt).build());
     }
 
     @Override
@@ -26,7 +30,10 @@ public class AuthResource implements AuthController {
             in.password()
         );
         return ResponseEntity
-            .ok(TokenOut.builder().jwt(jwt).build());
+            .created(
+                ServletUriComponentsBuilder.fromCurrentRequest().build().toUri()
+            )
+            .body(TokenOut.builder().jwt(jwt).build());
     }
 
 }
