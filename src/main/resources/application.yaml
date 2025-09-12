@@ -15,5 +15,5 @@ store:
 
 logging:
   level:
-    root: INFO
-    store: DEBUG
+    root: info
+    store: debug
