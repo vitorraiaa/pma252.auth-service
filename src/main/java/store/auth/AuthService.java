@@ -70,4 +70,10 @@ public class AuthService {
         return jwtService.generate(account);
     }
 
+    public AccountOut solve(String jwt) {
+        return AccountOut.builder()
+            .id(jwtService.getId(jwt))
+            .build();
+    }
+
 }

@@ -6,8 +6,11 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -22,9 +25,6 @@ public class JwtService {
 
     public String generate(AccountOut account) {
 
-        SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
-        // JwtParser parser = Jwts.parser().verifyWith(key).build();
-
         Date now = new Date();
 
         String jwt = Jwts.builder()
@@ -35,13 +35,38 @@ public class JwtService {
             .claims(Map.of(
                 "email", account.email()
             ))
-            .signWith(key)
+            .signWith(getKey())
             .subject(account.name())
             .notBefore(now)
             .expiration(new Date(now.getTime() + 1000 * 60 * 120)) // em milisegundos
             .compact();
         return jwt;
 
+    }
+
+    public String getId(String jwt) {
+        // constroe o parser
+        JwtParser parser = Jwts.parser().verifyWith(getKey()).build();
+        // recupero os atributos
+        Claims claims = parser.parseSignedClaims(jwt).getPayload();
+        Date now = new Date();
+        if (claims.getNotBefore().after(now)) {
+            throw new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "Token is not valid yet!"
+            );
+        }
+        if (claims.getExpiration().before(now)) {
+            throw new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "Token is expired!"
+            );
+        }
+        return claims.getId();
+    }
+
+    private SecretKey getKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
     }
     
 }
